@@ -12,18 +12,26 @@
       </tbody>
     </table>
   </div>
-  <div class="saveFile" @click="upload()"><ion-icon name="cloud-upload-outline"></ion-icon>
+  <div class="saveFile" @click="saveFile()"><ion-icon name="cloud-upload-outline"></ion-icon>
   </div>
 </template>
 
 <script setup>
 import { inject } from 'vue';
+import * as XLSX from 'XLSX';
 
 const checkedLst = inject('checkedLst')
 
 const remove = (index) => {
   checkedLst.value.splice(index, 1)
   sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
+}
+
+const saveFile = () => {
+  const ws = XLSX.utils.json_to_sheet(checkedLst.value)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Checked In")
+  XLSX.writeFile(wb, "Excel.xlsx")
 }
 </script>
 
