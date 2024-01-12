@@ -18,7 +18,7 @@
 
 <script setup>
 import { inject } from 'vue';
-import * as XLSX from 'XLSX';
+// import * as XLSX from 'XLSX';
 
 const checkedLst = inject('checkedLst')
 
@@ -27,12 +27,12 @@ const remove = (index) => {
   sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
 }
 
-const saveFile = () => {
-  const ws = XLSX.utils.json_to_sheet(checkedLst.value)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, "Checked In")
-  XLSX.writeFile(wb, "Excel.xlsx")
-}
+// const saveFile = () => {
+//   const ws = XLSX.utils.json_to_sheet(checkedLst.value)
+//   const wb = XLSX.utils.book_new()
+//   XLSX.utils.book_append_sheet(wb, ws, "Checked In")
+//   XLSX.writeFile(wb, "Excel.xlsx")
+// }
 </script>
 
 <style scoped>
