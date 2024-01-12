@@ -29,11 +29,10 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue';
+import { computed, inject, onMounted, ref } from 'vue';
 import axios from 'axios';
 
-import Students from '../database/Students.json';
-
+const Students = ref([])
 const searchID = ref('')
 const cardID = ref('')
 const student = ref({})
@@ -56,32 +55,37 @@ const add = (n) => {
 
 const pad = num => String(num).padStart(2, '0')
 
-const checkIn = (std) => {
+const checkIn = (id) => {
   student.value = {}
   err.value = ''
   document.querySelector(".cardInput").focus()
 
-  if (std.length < 5) {
+  if (!id) {
+    err.value = 'Student not found'
+    searchID.value = ''
+    cardID.value = ''
+  }
+
+  if (id.length < 5) {
     err.value = "Please Enter Student ID"
   } else {
     const date = new Date()
-    searchStudent(std)
+    searchStudent(id)
     // prevent duplicate
-    console.log(checkedLst.value.filter(s => s.id === std));
-    if (checkedLst.value.filter(s => s.id === std).length > 0) {
+    if (checkedLst.value.filter(s => s.id === id).length > 0) {
       err.value = 'Already checked in'
       searchID.value = ''
       cardID.value = ''
       return
     }
 
-    if (student.value.name) {
+    if (student.value.username) {
       checkedLst.value.unshift({
-        id: std,
-        name: student.value.name,
+        id: id,
+        name: student.value.fullNameTH,
         time: `${pad(date.getHours())}:${pad(date.getMinutes())}`
       })
-      pushToAPI(student.value.username)
+      pushToAPI(student.value.stdID)
 
       searchID.value = ''
       cardID.value = ''
@@ -92,34 +96,46 @@ const checkIn = (std) => {
   }
 }
 
-const pushToAPI = async (username) => {
-  const checked = await axios.get("http://10.161.14.114/users/" + username).then(res => {
-    return res.data.checkIns
-  })
+const pushToAPI = async (id) => {
 
-  const date = new Date
-  date.setTime(date.getTime() + 7 * 60 * 60 * 1000)
+  const payload = {
+    "type": 'id',
+    "id": id
+  }
 
-  checked.push(date)
-  console.log(checked);
+  searchID.value = ''
+  cardID.value = ''
 
-  axios.patch("http://10.161.14.114/users/" + username, { "checkIns": checked }).then(res => console.log(res.data))
+  axios.post("https://md-regis-api.serveo.net/checkIn", payload).then(
+    res => console.log(res.data)
+  ).catch(e => err.value = e)
 }
 
 const searchCard = () => {
-  const result = Students.data.filter(std => std.cardID === cardID.value)[0]
+  const result = Students.value.filter(std => std.cardID === cardID.value)[0]
   if (result) {
-    searchID.value = result.studentID
-    checkIn(result.studentID)
+    searchID.value = result.stdID
+    checkIn(result.stdID)
+  } else {
+    searchID.value = ''
+    cardID.value = ''
   }
 }
 
 const searchStudent = (id) => {
-  const result = Students.data.filter(std => std.studentID === id)[0]
+  const result = Students.value.filter(std => std.stdID === id)[0]
   if (result) {
+    console.log(result);
     student.value = result
   }
 }
+
+onMounted(() => {
+  axios.get("https://md-regis-api.serveo.net/users").then(res => {
+    Students.value = res.data
+    console.log(res.data);
+  }).catch(err => console.log(err))
+})
 </script>
 
 <style scoped>
