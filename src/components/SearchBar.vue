@@ -19,18 +19,17 @@
       <li @click="del()" class="delete">
         <ion-icon name="backspace-outline"></ion-icon>
       </li>
-      <li @click="checkIn(searchID)" class="enter">
+      <li @click="checkIn(searchID, 'id')" class="enter">
         <ion-icon name="enter-outline"></ion-icon>
       </li>
     </ul>
-    <input class="cardInput" type="text" v-model="cardID" @keyup.enter="searchCard()"
+    <input class="cardInput" type="text" v-model="cardID" @keyup.enter="checkIn(cardID, 'cardID')"
       placeholder="Click here to scan card">
   </div>
 </template>
 
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue';
-import axios from 'axios';
 
 const Students = ref([])
 const searchID = ref('')
@@ -55,7 +54,7 @@ const add = (n) => {
 
 const pad = num => String(num).padStart(2, '0')
 
-const checkIn = (id) => {
+const checkIn = (id, type) => {
   student.value = {}
   err.value = ''
   document.querySelector(".cardInput").focus()
@@ -70,7 +69,7 @@ const checkIn = (id) => {
     err.value = "Please Enter Student ID"
   } else {
     const date = new Date()
-    searchStudent(id)
+    // searchStudent(id)
     // prevent duplicate
     if (checkedLst.value.filter(s => s.id === id).length > 0) {
       err.value = 'Already checked in'
@@ -79,36 +78,44 @@ const checkIn = (id) => {
       return
     }
 
-    if (student.value.username) {
-      checkedLst.value.unshift({
-        id: id,
-        name: student.value.fullNameTH,
-        time: `${pad(date.getHours())}:${pad(date.getMinutes())}`
-      })
-      pushToAPI(student.value.stdID)
+    checkedLst.value.unshift({
+      type: type,
+      id: id,
+      status: 0
+    })
 
-      searchID.value = ''
-      cardID.value = ''
-      sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
-    } else {
-      err.value = 'Student not found'
-    }
+    searchID.value = ''
+    cardID.value = ''
+    sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
   }
 }
 
-const pushToAPI = async (id) => {
 
+const getName = async (std) => {
   const payload = {
-    "type": 'id',
-    "id": id
+    "type": std.type,
+    "id": std.id
+  }
+  console.log(std);
+
+  console.log(payload);
+
+  const student = await axios.post("https://server.3xbun.com/md-regis-api/checkin", payload).then(res => {
+    return res.data.data
+  }).catch(err => {
+    std.status = 2
+    console.log(err);
+  })
+
+  if (student) {
+    std.name = student.fullNameTH
+    std.status = 1
+    std.stdID = student.stdID
+  } else {
+    std.status = 2
   }
 
-  searchID.value = ''
-  cardID.value = ''
-
-  axios.post("https://md-regis-api.serveo.net/checkIn", payload).then(
-    res => console.log(res.data)
-  ).catch(e => err.value = e)
+  console.log(std);
 }
 
 const searchCard = () => {
@@ -131,10 +138,10 @@ const searchStudent = (id) => {
 }
 
 onMounted(() => {
-  axios.get("https://md-regis-api.serveo.net/users").then(res => {
-    Students.value = res.data
-    console.log(res.data);
-  }).catch(err => console.log(err))
+  // axios.get("https://md-regis-api.serveo.net/users").then(res => {
+  //   Students.value = res.data
+  //   console.log(res.data);
+  // }).catch(err => console.log(err))
 })
 </script>
 
