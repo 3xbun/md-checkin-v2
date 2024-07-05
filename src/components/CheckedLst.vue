@@ -10,12 +10,10 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
-import axios from 'axios';
+import { inject } from 'vue';
 
 const checkedLst = inject('checkedLst')
 import Name from '../components/Name.vue';
-
 
 </script>
 
