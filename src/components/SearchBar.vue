@@ -29,9 +29,8 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from 'vue';
+import { inject, ref } from 'vue';
 
-const Students = ref([])
 const searchID = ref('')
 const cardID = ref('')
 const student = ref({})
@@ -52,8 +51,6 @@ const add = (n) => {
   }
 }
 
-const pad = num => String(num).padStart(2, '0')
-
 const checkIn = (id, type) => {
   student.value = {}
   err.value = ''
@@ -69,8 +66,6 @@ const checkIn = (id, type) => {
     err.value = "Please Enter Student ID"
   } else {
     const date = new Date()
-    // searchStudent(id)
-    // prevent duplicate
     if (checkedLst.value.filter(s => s.id === id).length > 0) {
       err.value = 'Already checked in'
       searchID.value = ''
@@ -89,60 +84,6 @@ const checkIn = (id, type) => {
     sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
   }
 }
-
-
-const getName = async (std) => {
-  const payload = {
-    "type": std.type,
-    "id": std.id
-  }
-  console.log(std);
-
-  console.log(payload);
-
-  const student = await axios.post("https://server.3xbun.com/md-regis-api/checkin", payload).then(res => {
-    return res.data.data
-  }).catch(err => {
-    std.status = 2
-    console.log(err);
-  })
-
-  if (student) {
-    std.name = student.fullNameTH
-    std.status = 1
-    std.stdID = student.stdID
-  } else {
-    std.status = 2
-  }
-
-  console.log(std);
-}
-
-const searchCard = () => {
-  const result = Students.value.filter(std => std.cardID === cardID.value)[0]
-  if (result) {
-    searchID.value = result.stdID
-    checkIn(result.stdID)
-  } else {
-    searchID.value = ''
-    cardID.value = ''
-  }
-}
-
-const searchStudent = (id) => {
-  const result = Students.value.filter(std => std.stdID === id)[0]
-  if (result) {
-    console.log(result);
-    student.value = result
-  }
-}
-
-onMounted(() => {
-  // axios.get("https://md-regis-api.serveo.net/users").then(res => {
-  //   Students.value = res.data
-  //   console.log(res.data);
-  // }).catch(err => console.log(err))
-})
 </script>
 
 <style scoped>
