@@ -1,7 +1,8 @@
 <template>
   <tr>
     <td v-if="student.status == 0">{{ student.id }}</td>
-    <td v-if="student.status == 1">{{ dayjs(student.checkin.checkIns[-1]).format('HH:mm') }}</td>
+    <!-- <td v-if="student.status == 1">{{ student.checkin }}</td> -->
+    <td v-if="student.status == 1">{{ dayjs(student.checkin.checkIns[lastCheckIn]).format('HH:mm') }}</td>
     <td>{{ student.stdID }}</td>
     <td class="name">{{ student.name }}</td>
     <td>
@@ -12,7 +13,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUpdated, inject, toRefs } from 'vue';
+import { onMounted, onUpdated, inject, toRefs, computed } from 'vue';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -22,10 +23,14 @@ const props = defineProps({
 
 const { student } = toRefs(props)
 
+const lastCheckIn = computed(() => student.value.checkin.checkIns.length)
 
 const checkedLst = inject('checkedLst')
 const remove = (student) => {
-  checkedLst.value.splice(student, 1)
+  checkedLst.value = checkedLst.value.filter(std => {
+    console.log(std);
+    return std != student
+  })
   sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
 }
 
