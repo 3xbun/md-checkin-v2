@@ -2,7 +2,9 @@
   <tr>
     <td v-if="student.status == 0">{{ student.id }}</td>
     <!-- <td v-if="student.status == 1">{{ student.checkin }}</td> -->
-    <td v-if="student.status == 1">{{ dayjs(student.checkin.checkIns[lastCheckIn]).format('HH:mm') }}</td>
+    <td v-if="student.status == 1">
+      {{ dayjs(lastCheckIn).format('HH:mm') }}
+    </td>
     <td>{{ student.stdID }}</td>
     <td class="name">{{ student.name }}</td>
     <td>
@@ -13,7 +15,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUpdated, inject, toRefs, computed } from 'vue';
+import { ref, onMounted, onUpdated, inject, toRefs, computed } from 'vue';
 import axios from 'axios';
 import dayjs from 'dayjs';
 
@@ -23,9 +25,10 @@ const props = defineProps({
 
 const { student } = toRefs(props)
 
-const lastCheckIn = computed(() => student.value.checkin.checkIns.length)
+const lastCheckIn = ref('')
 
 const checkedLst = inject('checkedLst')
+
 const remove = (student) => {
   checkedLst.value = checkedLst.value.filter(std => {
     console.log(std);
@@ -56,7 +59,10 @@ const getName = async () => {
       std.stdID = student.stdID
       std.checkin = student
     }
+  } else {
+    axios.get('https://server.3xbun.com/md-regis-api/Users/'+student.value.checkin.username).then(res => lastCheckIn.value = res.data.checkIns.at(-1))
   }
+
   sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
 }
 
