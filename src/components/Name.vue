@@ -45,7 +45,7 @@ const getName = async () => {
   }
 
   if (std.status == 0) {
-    const student = await axios.post("https://server.3xbun.com/md-regis-api/checkin", payload).then(res => {
+    const student = await axios.post("https://md-regis-api.3xbun.com/checkin", payload).then(res => {
       return res.data.data
     }).catch(err => {
       std.status = 2
@@ -60,7 +60,7 @@ const getName = async () => {
       std.checkin = student
     }
   } else {
-    axios.get('https://server.3xbun.com/md-regis-api/Users/'+student.value.checkin.username).then(res => lastCheckIn.value = res.data.checkIns.at(-1))
+    axios.get('https://md-regis-api.3xbun.com/Users/'+student.value.checkin.username).then(res => lastCheckIn.value = res.data.checkIns.at(-1))
   }
 
   sessionStorage.setItem('checkedLst', JSON.stringify(checkedLst.value))
